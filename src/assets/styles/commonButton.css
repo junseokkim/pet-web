@@ -1,0 +1,27 @@
+.common-button {
+  width: 100%;
+  max-width: 400px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #333;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.common-button:hover:not(:disabled) {
+  background-color: #222;
+}
+
+.common-button:disabled {
+  background-color: #999;
+  cursor: not-allowed;
+} 
