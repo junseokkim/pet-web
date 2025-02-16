@@ -32,6 +32,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from "vue-toastification";
 import { authApi } from '@/api/auth';
+import { petsitterApi } from '@/api/petsitter';
 import PetProfile from '@/components/PetProfile.vue';
 import PetsitterProfile from '@/components/PetsitterProfile.vue';
 import ProfileField from '@/components/ProfileField.vue';
@@ -80,42 +81,68 @@ export default {
       }
     };
 
-    // 컴포넌트 마운트 시 회원 정보 조회
+    // 펫시터 프로필 데이터 수정
+    const petsitter = ref(null);
+
+    // 펫시터 프로필 조회
+    const fetchPetsitterProfile = async () => {
+      try {
+        const response = await petsitterApi.getPetsitter();
+        
+        if (response.data.status === 'success') {
+          petsitter.value = {
+            image: response.data.data.profileImageUrl,
+            name: response.data.data.name,
+            petSitterId: response.data.data.petSitterId,
+            introduce: response.data.data.introduce
+          };
+          console.log("Fetched petsitter:", petsitter.value);
+        }
+      } catch (error) {
+        console.error('펫시터 프로필 조회 에러:', error);
+        
+        if (error.response?.data?.message) {
+          // 프로필이 없는 경우는 에러가 아닌 정상적인 상태로 처리
+          if (error.response.data.message.includes('펫시터 프로필이 존재하지 않습니다')) {
+            petsitter.value = null;
+          } else if (error.response.data.message.includes('로그인이 필요합니다')) {
+            toast.error("로그인이 필요합니다.");
+            router.push('/login');
+          } else {
+            toast.error(error.response.data.message);
+          }
+        } else {
+          toast.error("펫시터 프로필 조회 중 오류가 발생했습니다.");
+        }
+      }
+    };
+
+    // 컴포넌트 마운트 시 회원 정보와 펫시터 프로필 조회
     onMounted(() => {
       fetchProfile();
+      fetchPetsitterProfile();
     });
 
     const pets = ref([
       { 
-        image: 'https://via.placeholder.com/100',
+        image: null,
         name: '멍멍이'
       },
       { 
-        image: 'https://via.placeholder.com/100',
+        image: null,
         name: '냥이'
       }
     ]);
 
-    // 펫시터 프로필 데이터 수정
-    const petsitter = ref({
-      image: 'https://via.placeholder.com/100',
-      name: '김준석',
-      bio: '반려동물을 사랑하는 마음으로 정성껏 돌보겠습니다.'
-    });
-
     const addPet = () => {
       pets.value.push({ 
-        image: 'https://via.placeholder.com/100',
+        image: null,
         name: '새 반려동물'
       });
     };
 
     const addPetsitter = () => {
-      petsitter.value = {
-        image: '',
-        name: '',
-        bio: ''
-      };
+      router.push('/petsitter/register');
     };
 
     const handleLogout = () => {

@@ -1,21 +1,16 @@
 <template>
   <div class="petsitter-container">
-    <div v-if="profile" class="petsitter-profile">
+    <div v-if="profile" class="petsitter-profile" @click="goToDetail">
       <div class="profile-image-container">
         <img 
-          :src="profile.image" 
-          @error="onImageError"
+          :src="profileImage" 
           alt="펫시터 프로필" 
           class="profile-image"
-          ref="profileImage"
         />
-        <div v-if="!profile.image" class="default-image">
-          👤
-        </div>
       </div>
       <div class="profile-info">
         <h3 class="profile-name">{{ profile.name }}</h3>
-        <p class="profile-bio">{{ profile.bio }}</p>
+        <p class="profile-bio">{{ profile.introduce || '소개글이 없습니다.' }}</p>
       </div>
     </div>
     <div v-else class="add-petsitter" @click="$emit('add-petsitter')">
@@ -28,12 +23,30 @@
 </template>
 
 <script>
+import { useRouter } from 'vue-router';
+import { computed } from 'vue';
+import DefaultProfileImage from '@/assets/default-profile.png';
+
 export default {
   props: { 
     profile: {
       type: Object,
       default: null
     }
+  },
+  setup(props) {
+    const router = useRouter();
+
+    const goToDetail = () => {
+      if (props.profile?.petSitterId) {
+        router.push(`/petsitter/${props.profile.petSitterId}`);
+      }
+    };
+
+    return {
+      profileImage: computed(() => props.profile?.image || DefaultProfileImage),
+      goToDetail
+    };
   },
   emits: ['add-petsitter']
 };
@@ -52,6 +65,12 @@ export default {
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.petsitter-profile:hover {
+  transform: translateY(-5px);
+  transition: transform 0.2s ease;
 }
 
 .profile-image-container {
@@ -72,17 +91,6 @@ export default {
   position: absolute;
   top: 0;
   left: 0;
-}
-
-.default-image {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 50px;
-  background-color: #f0f0f0;
-  display: none;
 }
 
 .profile-info {

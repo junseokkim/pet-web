@@ -4,15 +4,10 @@
       <div v-for="(pet, index) in pets" :key="index" class="pet-profile-card">
         <div class="pet-image-container">
           <img 
-            :src="pet.image" 
-            @error="onImageError"
+            :src="getProfileImage(pet)" 
             alt="펫 프로필" 
             class="pet-image"
-            ref="petImage" 
           />
-          <div v-if="!pet.image" class="default-image">
-            🐾
-          </div>
         </div>
         <div class="pet-name">{{ pet.name || '이름 없음' }}</div>
       </div>
@@ -27,6 +22,8 @@
 </template>
 
 <script>
+import DefaultProfileImage from '@/assets/default-profile.png';
+
 export default {
   props: { 
     pets: {
@@ -37,12 +34,9 @@ export default {
   emits: ['add-pet'],
   setup(_, { emit }) {
     const addPet = () => emit('add-pet');
-    const onImageError = (e) => {
-      e.target.style.display = 'none';
-      e.target.parentElement.querySelector('.default-image').style.display = 'flex';
-    };
+    const getProfileImage = (pet) => pet.image || DefaultProfileImage;
 
-    return { addPet, onImageError };
+    return { addPet, getProfileImage };
   }
 };
 </script>
