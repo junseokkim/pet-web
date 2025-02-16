@@ -5,10 +5,18 @@
   
       <!-- 중앙: 네비게이션 메뉴 -->
       <ul class="nav-links">
-        <li><router-link to="/">홈</router-link></li>
-        <li><router-link to="/shop">쇼핑몰</router-link></li>
-        <li><router-link to="/petsitter">펫시터</router-link></li>
-        <li><router-link to="/mypage">마이페이지</router-link></li>
+        <li>
+          <router-link to="/" :class="{ active: isCurrentRoute('/') }">홈</router-link>
+        </li>
+        <li>
+          <router-link to="/shop" :class="{ active: isCurrentRoute('/shop') }">쇼핑몰</router-link>
+        </li>
+        <li>
+          <router-link to="/petsitter" :class="{ active: isCurrentRoute('/petsitter') }">펫시터</router-link>
+        </li>
+        <li>
+          <router-link to="/mypage" :class="{ active: isCurrentRoute('/mypage') }">마이페이지</router-link>
+        </li>
       </ul>
   
       <!-- 오른쪽: 로그인 상태 -->
@@ -21,11 +29,25 @@
   
   <script>
   import { useAuthStore } from "@/stores/auth";
+  import { useRoute } from 'vue-router';
+  import { computed } from 'vue';
   
   export default {
     setup() {
       const authStore = useAuthStore();
-      return { authStore };
+      const route = useRoute();
+  
+      const isCurrentRoute = (path) => {
+        if (path === '/') {
+          return route.path === '/';
+        }
+        return route.path.startsWith(path);
+      };
+  
+      return { 
+        authStore,
+        isCurrentRoute
+      };
     },
   };
   </script>
@@ -73,11 +95,28 @@
   /* ✅ 5. 네비게이션 링크 스타일 */
   .nav-links li a {
     text-decoration: none;
-    transition: opacity 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    padding: 8px 16px;
+    border-radius: 20px;
+    position: relative;
   }
   
+  /* 활성화된 링크 스타일 */
+  .nav-links li a.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: 700;
+  }
+  
+  /* 호버 효과 */
   .nav-links li a:hover {
-    opacity: 0.7;
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* 활성화된 링크 호버 효과 */
+  .nav-links li a.active:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.2);
   }
   
   /* ✅ 6. 로그인 (우측 정렬) */
