@@ -1,7 +1,10 @@
-import { authInstance } from '@/api/axios';
-import axios from 'axios';
+import { authInstance, publicInstance } from '@/api/axios';
 
 export const petsitterApi = {
+  getPetsitterList: () => {
+    return publicInstance.get('/pet-sitters/list');
+  },
+
   getPetsitter: () => {
     return authInstance.get('/pet-sitters');
   },
@@ -11,10 +14,26 @@ export const petsitterApi = {
   },
 
   getPetsitterDetail: (id) => {
-    return axios.get(`/api/v1/pet-sitters/${id}`);
+    return publicInstance.get(`/pet-sitters/${id}`);
   },
 
   deletePetsitter: (id) => {
-    return axios.delete(`/api/v1/pet-sitters/${id}`);
+    return authInstance.delete(`/pet-sitters/${id}`);
+  },
+
+  getPetsitterServices: (id) => {
+    return publicInstance.get(`/pet-sitters/${id}/services`);
+  },
+
+  getMyServices: () => {
+    return authInstance.get('/pet-sitters/services');
+  },
+
+  getMonthlyServices: (year, month) => {
+    return publicInstance.get(`/pet-sitters/services/monthly?year=${year}&month=${month}`);
+  },
+
+  getServiceDetail: (serviceId) => {
+    return publicInstance.get(`/pet-sitters/services/${serviceId}`);
   }
-}; 
+};

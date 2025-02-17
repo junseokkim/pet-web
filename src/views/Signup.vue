@@ -89,12 +89,36 @@
         }
       });
   
-      // 전화번호 유효성 검사
-      watch(phone, (newValue) => {
-        if (newValue && newValue.length < 10) {
-          phoneError.value = "올바른 전화번호 형식이 아닙니다.";
+      // 전화번호 하이픈 자동 추가 함수
+      const formatPhoneNumber = (value) => {
+        if (!value) return '';
+        
+        // 숫자만 추출
+        const numbers = value.replace(/[^0-9]/g, '');
+        
+        // 숫자 그룹별로 하이픈 추가
+        if (numbers.length <= 3) {
+          return numbers;
+        } else if (numbers.length <= 7) {
+          return numbers.slice(0, 3) + '-' + numbers.slice(3);
         } else {
-          phoneError.value = "";
+          return numbers.slice(0, 3) + '-' + numbers.slice(3, 7) + '-' + numbers.slice(7, 11);
+        }
+      };
+  
+      // 전화번호 입력 감시
+      watch(phone, (newValue) => {
+        if (newValue) {
+          // 포맷된 전화번호로 업데이트
+          phone.value = formatPhoneNumber(newValue);
+          
+          // 유효성 검사
+          const numbersOnly = newValue.replace(/[^0-9]/g, '');
+          if (numbersOnly.length < 10 || numbersOnly.length > 11) {
+            phoneError.value = "올바른 전화번호 형식이 아닙니다.";
+          } else {
+            phoneError.value = "";
+          }
         }
       });
   
@@ -131,7 +155,7 @@
             email: email.value,
             password: password.value,
             name: name.value,
-            contact: phone.value
+            contact: phone.value.replace(/[^0-9]/g, '') // 하이픈 제거 후 전송
           };
   
           console.log('Sending signup request with data:', userData);  // 요청 데이터 로깅

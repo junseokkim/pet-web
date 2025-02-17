@@ -48,6 +48,38 @@
         <h3>경력사항</h3>
         <p>{{ petsitter.experience || '경력사항이 없습니다.' }}</p>
       </div>
+
+      <div class="services-section" v-if="services.length > 0">
+        <h3>제공 서비스</h3>
+        <div class="services-grid">
+          <div v-for="service in services" :key="service.serviceId" 
+               class="service-card" @click="viewServiceDetail(service.serviceId)">
+            <div class="service-info">
+              <div class="service-types">
+                <span v-for="type in service.serviceTypes" :key="type" 
+                      class="service-type">{{ getServiceTypeLabel(type) }}</span>
+              </div>
+              <div class="service-period">
+                {{ formatDate(service.availableStartDate) }} ~ 
+                {{ formatDate(service.availableEndDate) }}
+              </div>
+              <div class="service-price">
+                시간당 {{ formatPrice(service.hourlyPrice) }}원
+              </div>
+              <div class="service-sizes">
+                <span v-for="size in service.availableSizes" :key="size" 
+                      class="size-tag">{{ getSizeLabel(size) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="petsitter.isMine" class="service-management">
+        <button class="add-service-button" @click="goToServiceManagement">
+          서비스 관리하기
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -58,6 +90,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useToast } from "vue-toastification";
 import { petsitterApi } from '@/api/petsitter';
 import DefaultProfileImage from '@/assets/default-profile.png';
+import { formatDate } from '@/utils/dateUtils';
 
 export default {
   setup() {
@@ -65,6 +98,7 @@ export default {
     const router = useRouter();
     const toast = useToast();
     const petsitter = ref({});
+    const services = ref([]);
 
     const fetchPetsitterDetail = async () => {
       try {
@@ -75,6 +109,17 @@ export default {
       } catch (error) {
         console.error('펫시터 상세 정보 조회 실패:', error);
         toast.error('펫시터 정보를 불러오는데 실패했습니다.');
+      }
+    };
+
+    const fetchServices = async () => {
+      try {
+        const response = await petsitterApi.getPetsitterServices(route.params.id);
+        if (response.data.status === 'success') {
+          services.value = response.data.data.services;
+        }
+      } catch (error) {
+        console.error('서비스 목록 조회 실패:', error);
       }
     };
 
@@ -107,11 +152,40 @@ export default {
       return types[type] || type;
     };
 
+    const getServiceTypeLabel = (type) => {
+      const types = {
+        WALK: '산책',
+        CARE: '돌봄',
+        TRAINING: '훈련'
+      };
+      return types[type] || type;
+    };
+
+    const getSizeLabel = (size) => {
+      const sizes = {
+        SMALL: '소형',
+        MEDIUM: '중형',
+        LARGE: '대형'
+      };
+      return sizes[size] || size;
+    };
+
+    const viewServiceDetail = (serviceId) => {
+      router.push(`/service/${serviceId}`);
+    };
+
+    const goToServiceManagement = () => {
+      router.push(`/petsitter/${route.params.id}/services/manage`);
+    };
+
     const profileImage = computed(() => {
       return petsitter.value.profileUrl || DefaultProfileImage;
     });
 
-    onMounted(fetchPetsitterDetail);
+    onMounted(() => {
+      fetchPetsitterDetail();
+      fetchServices();
+    });
 
     return {
       petsitter,
@@ -119,7 +193,13 @@ export default {
       handleEdit,
       handleDelete,
       formatPrice,
-      getPetTypeLabel
+      getPetTypeLabel,
+      services,
+      getServiceTypeLabel,
+      getSizeLabel,
+      formatDate,
+      viewServiceDetail,
+      goToServiceManagement
     };
   }
 };
@@ -233,5 +313,81 @@ export default {
   border-radius: 20px;
   font-size: 14px;
   color: #333;
+}
+
+.services-section {
+  margin-top: 40px;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.service-card {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.service-card:hover {
+  transform: translateY(-3px);
+}
+
+.service-types {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.service-type {
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.service-period {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.service-price {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.size-tag {
+  background: #f0f0f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.service-management {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.add-service-button {
+  background: #333;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.add-service-button:hover {
+  background: #444;
 }
 </style> 
