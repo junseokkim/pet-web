@@ -12,6 +12,7 @@ import Withdraw from '@/views/Withdraw.vue';
 import PetsitterRegister from '@/views/PetsitterRegister.vue';
 import PetsitterDetail from '@/views/PetsitterDetail.vue';
 import { useAuthStore } from '@/stores/auth';
+import Admin from '@/views/Admin.vue';
 
 const routes = [
   {
@@ -44,6 +45,14 @@ const routes = [
     path: '/petsitter/:id',
     name: 'petsitter-detail',
     component: PetsitterDetail
+  },
+  {
+    path: '/admin',
+    component: Admin,
+    meta: { 
+      requiresAuth: true,
+      requiresAdmin: true  // 관리자 권한 필요
+    }
   }
 ];
 
@@ -56,14 +65,15 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   
-  // requiresAuth가 true인 페이지에 접근하려 할 때
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    // 로그인 상태가 아니라면
     if (!authStore.isAuthenticated) {
       next({
         path: '/login',
-        query: { redirect: to.fullPath }  // 로그인 후 원래 가려던 페이지로 리다이렉트하기 위해
+        query: { redirect: to.fullPath }
       });
+    } else if (to.matched.some(record => record.meta.requiresAdmin) && !authStore.isAdmin) {
+      // 관리자 권한이 필요한 페이지에 대한 처리
+      next('/');
     } else {
       next();
     }

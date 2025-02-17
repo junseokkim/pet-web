@@ -17,6 +17,14 @@
         <li>
           <router-link to="/mypage" :class="{ active: isCurrentRoute('/mypage') }">마이페이지</router-link>
         </li>
+        <li v-if="authStore.isAdmin">
+          <router-link 
+            to="/admin" 
+            :class="{ active: isCurrentRoute('/admin') }"
+          >
+            관리자
+          </router-link>
+        </li>
       </ul>
   
       <!-- 오른쪽: 로그인 상태 -->

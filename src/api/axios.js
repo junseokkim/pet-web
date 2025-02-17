@@ -6,6 +6,7 @@ export const authInstance = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json;charset=UTF-8'  // Accept 헤더 추가
   },
   withCredentials: true  // 인증이 필요한 요청에만 적용
 });
@@ -24,6 +25,7 @@ export const publicInstance = axios.create({
 authInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', error.response); // 에러 로깅 추가
     if (error.response) {
       if (error.response.status === 401) {
         window.location.href = '/login';

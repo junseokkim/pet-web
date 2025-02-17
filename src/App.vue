@@ -26,7 +26,8 @@ export default {
         if (response.data.status === 'success') {
           authStore.setAuth(
             response.data.data.memberId,
-            response.data.data.name
+            response.data.data.name,
+            response.data.data.isAdmin
           );
         }
       } catch (error) {
