@@ -35,10 +35,8 @@ export const adminApi = {
       const response = await authInstance.delete(`/code-group/${groupId}`);
       return response;
     } catch (error) {
-      if (error.response?.status === 400 || error.response?.status === 404) {
-        throw error; // 비즈니스 로직 에러는 그대로 전달
-      }
-      throw new Error('코드 그룹 삭제에 실패했습니다.');
+      // 수정과 동일하게 에러를 그대로 throw
+      throw error;
     }
   },
 

@@ -74,7 +74,7 @@ export default {
       }
     });
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
       event.preventDefault();
       if (isSubmitting.value) return;
       
@@ -86,15 +86,34 @@ export default {
         codeGroupDescription: formData.value.codeGroupDescription
       };
       
-      console.log('전송할 데이터:', submitData);
-      emit('submit', submitData);
+      try {
+        await emit('submit', submitData);
+      } catch (error) {
+        console.error('Submit error:', error);
+      } finally {
+        isSubmitting.value = false; // 성공/실패 상관없이 제출 상태 초기화
+      }
+    };
+
+    const resetForm = () => {
+      isSubmitting.value = false;
+      if (props.groupData) {
+        formData.value = { ...props.groupData };
+      } else {
+        formData.value = {
+          codeGroupId: '',
+          codeGroupName: '',
+          codeGroupDescription: ''
+        };
+      }
     };
 
     return {
       isEdit,
       formData,
       handleSubmit,
-      isSubmitting
+      isSubmitting,
+      resetForm
     };
   }
 };

@@ -445,16 +445,10 @@ export default {
           loadCodeGroups();
         }
       } catch (error) {
-        console.error('코드 그룹 삭제 에러:', error);
-        if (error.response?.data?.status === 'error') {
-          if (error.response.data.message === '코드 그룹에 속한 코드 상세가 존재합니다.') {
-            toast.error('코드 상세가 존재하는 그룹은 삭제할 수 없습니다.');
-          } else if (error.response.data.message === '해당 코드 그룹이 존재하지 않습니다.') {
-            toast.error('존재하지 않는 코드 그룹입니다.');
-            loadCodeGroups();
-          } else {
-            toast.error(error.response.data.message);
-          }
+        console.log('삭제 에러:', error);
+        // error.message에서 직접 메시지 추출 (수정과 동일한 방식)
+        if (error.message) {
+          toast.error(error.message);
         } else {
           toast.error('코드 그룹 삭제에 실패했습니다.');
         }
