@@ -17,23 +17,24 @@ export default {
   setup() {
     const authStore = useAuthStore();
 
-    onMounted(async () => {
-      try {
-        // 페이지 로드 시 인증 상태 확인
-        const response = await authApi.checkAuth();
-        console.log('Auth check response:', response.data);
-        
-        if (response.data.status === 'success') {
-          authStore.setAuth(
-            response.data.data.memberId,
-            response.data.data.name,
-            response.data.data.isAdmin
-          );
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        authStore.clearAuth();
+    const checkAuth = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        return;
       }
+      
+      try {
+        // 인증 체크 API 호출
+        await authApi.checkAuth();
+      } catch (error) {
+        // 콘솔 로그 제거
+        // 토큰이 유효하지 않은 경우 처리
+        localStorage.removeItem('accessToken');
+      }
+    };
+
+    onMounted(() => {
+      checkAuth();
     });
   }
 };

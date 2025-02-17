@@ -43,8 +43,13 @@ export const petsitterApi = {
     return publicInstance.get(`/pet-sitters/services/monthly?year=${year}&month=${month}`);
   },
 
-  getServiceDetail: (serviceId) => {
-    return publicInstance.get(`/pet-sitters/services/${serviceId}`);
+  getServiceDetail: async (serviceId) => {
+    try {
+      const response = await authInstance.get(`/pet-sitters/services/${serviceId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   createService: async (serviceData) => {
@@ -59,6 +64,15 @@ export const petsitterApi = {
   deleteService: async (serviceId) => {
     try {
       const response = await authInstance.delete(`/pet-sitters/services/${serviceId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  createBooking: async (bookingData) => {
+    try {
+      const response = await authInstance.post('/bookings', bookingData);
       return response;
     } catch (error) {
       throw error;

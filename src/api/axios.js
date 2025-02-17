@@ -1,50 +1,45 @@
 import axios from 'axios';
 
-// 인증이 필요한 API 요청을 위한 인스턴스
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+
+// 인증이 필요한 요청에 사용할 인스턴스
 export const authInstance = axios.create({
-  baseURL: 'http://localhost:8080/api/v1',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json;charset=UTF-8'  // Accept 헤더 추가
-  },
-  withCredentials: true  // 인증이 필요한 요청에만 적용
+  baseURL,
+  withCredentials: true
 });
 
-// 인증이 필요없는 API 요청을 위한 인스턴스
+// 인증이 필요없는 요청에 사용할 인스턴스
 export const publicInstance = axios.create({
-  baseURL: 'http://localhost:8080/api/v1',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true  // 로그인 요청에도 필요
+  baseURL,
+  withCredentials: true
 });
 
-// 응답 인터셉터 (인증 필요한 요청용)
-authInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error.response); // 에러 로깅 추가
-    if (error.response) {
-      if (error.response.status === 401) {
-        window.location.href = '/login';
-      }
-      return Promise.reject(error.response.data);
+// 인터셉터에서 에러 처리 수정
+authInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    return config;
+  },
+  (error) => {
     return Promise.reject(error);
   }
 );
 
-// 응답 인터셉터 추가
+authInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // 콘솔 로그 제거
+    return Promise.reject(error);
+  }
+);
+
 publicInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error.response);
-    // authInstance와 동일한 방식으로 에러 변환
-    if (error.response?.data) {
-      return Promise.reject(error.response.data);
-    }
+    // 콘솔 로그 제거
     return Promise.reject(error);
   }
 );

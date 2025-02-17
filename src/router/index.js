@@ -16,6 +16,10 @@ import Admin from '@/views/Admin.vue';
 import PetDetail from '@/views/PetDetail.vue';
 import ServiceManagement from '@/views/ServiceManagement.vue';
 import ServiceRegister from '@/views/ServiceRegister.vue';
+import ServiceDetail from '@/views/ServiceDetail.vue';
+import BookingTime from '@/views/booking/BookingTime.vue';
+import BookingPets from '@/views/booking/BookingPets.vue';
+import BookingPayment from '@/views/booking/BookingPayment.vue';
 
 const routes = [
   {
@@ -73,6 +77,30 @@ const routes = [
     path: '/service/register',
     name: 'ServiceRegister',
     component: ServiceRegister,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/service/:id',
+    name: 'ServiceDetail',
+    component: ServiceDetail,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/service/:id/booking',
+    name: 'BookingTime',
+    component: BookingTime,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/service/:id/booking/pets',
+    name: 'BookingPets',
+    component: BookingPets,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/service/:id/booking/payment',
+    name: 'BookingPayment',
+    component: BookingPayment,
     meta: { requiresAuth: true }
   }
 ];
