@@ -52,17 +52,29 @@ export const adminApi = {
   },
 
   createCodeDetail: async (codeDetailData) => {
-    const response = await authInstance.post('/code-details', codeDetailData);
-    return response;
+    try {
+      const response = await authInstance.post('/code-details', codeDetailData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  updateCodeDetail: async (detailId, codeDetailData) => {
-    const response = await authInstance.patch(`/code-details/${detailId}`, codeDetailData);
-    return response;
+  updateCodeDetail: async (codeDetailData) => {
+    try {
+      const response = await authInstance.patch('/code-details', codeDetailData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  deleteCodeDetail: async (detailId) => {
-    const response = await authInstance.delete(`/code-details/${detailId}`);
-    return response;
+  deleteCodeDetail: async (codeDetailId) => {
+    try {
+      const response = await authInstance.delete(`/code-details/${codeDetailId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   }
 }; 

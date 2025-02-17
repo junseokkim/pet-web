@@ -33,6 +33,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useToast } from "vue-toastification";
 import { authApi } from '@/api/auth';
 import { petsitterApi } from '@/api/petsitter';
+import { petsApi } from '@/api/pets';
 import PetProfile from '@/components/PetProfile.vue';
 import PetsitterProfile from '@/components/PetsitterProfile.vue';
 import ProfileField from '@/components/ProfileField.vue';
@@ -117,28 +118,41 @@ export default {
       }
     };
 
+    // 펫 프로필 조회
+    const pets = ref([]);
+
+    const fetchPets = async () => {
+      try {
+        const response = await petsApi.getMyPets();
+        
+        if (response.data.status === 'success') {
+          pets.value = response.data.data.petProfiles;
+        }
+      } catch (error) {
+        console.error('펫 프로필 조회 에러:', error);
+        
+        if (error.response?.data?.message) {
+          if (error.response.data.message.includes('로그인이 필요합니다')) {
+            toast.error("로그인이 필요합니다.");
+            router.push('/login');
+          } else {
+            toast.error(error.response.data.message);
+          }
+        } else {
+          toast.error("펫 프로필 조회 중 오류가 발생했습니다.");
+        }
+      }
+    };
+
     // 컴포넌트 마운트 시 회원 정보와 펫시터 프로필 조회
     onMounted(() => {
       fetchProfile();
       fetchPetsitterProfile();
+      fetchPets();
     });
 
-    const pets = ref([
-      { 
-        image: null,
-        name: '멍멍이'
-      },
-      { 
-        image: null,
-        name: '냥이'
-      }
-    ]);
-
     const addPet = () => {
-      pets.value.push({ 
-        image: null,
-        name: '새 반려동물'
-      });
+      router.push('/pet/register');
     };
 
     const addPetsitter = () => {

@@ -21,12 +21,22 @@ export const petsitterApi = {
     return authInstance.delete(`/pet-sitters/${id}`);
   },
 
-  getPetsitterServices: (id) => {
-    return publicInstance.get(`/pet-sitters/${id}/services`);
+  getPetsitterServices: async (petsitterId) => {
+    try {
+      const response = await authInstance.get(`/pet-sitters/${petsitterId}/services`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  getMyServices: () => {
-    return authInstance.get('/pet-sitters/services');
+  getMyServices: async () => {
+    try {
+      const response = await authInstance.get('/pet-sitters/services');
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getMonthlyServices: (year, month) => {
@@ -35,5 +45,23 @@ export const petsitterApi = {
 
   getServiceDetail: (serviceId) => {
     return publicInstance.get(`/pet-sitters/services/${serviceId}`);
+  },
+
+  createService: async (serviceData) => {
+    try {
+      const response = await authInstance.post('/pet-sitters/services', serviceData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  deleteService: async (serviceId) => {
+    try {
+      const response = await authInstance.delete(`/pet-sitters/services/${serviceId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   }
 };

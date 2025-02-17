@@ -40,73 +40,73 @@
     <section class="services-section">
       <div class="title-wrapper">
         <h2 class="section-title">서비스</h2>
-        <div class="view-toggle">
-          <button :class="{ active: viewMode === 'list' }" 
-                  @click="viewMode = 'list'">리스트</button>
-          <button :class="{ active: viewMode === 'calendar' }" 
-                  @click="viewMode = 'calendar'">캘린더</button>
+        <div class="month-selector">
+          <button class="month-button" @click="changeMonth(-1)">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <span class="current-month">{{ currentYear }}년 {{ currentMonth }}월</span>
+          <button class="month-button" @click="changeMonth(1)">
+            <i class="fas fa-chevron-right"></i>
+          </button>
         </div>
       </div>
 
-      <!-- 리스트 뷰 -->
-      <div v-if="viewMode === 'list'" class="services-list">
-        <div v-if="services.length === 0" class="empty-wrapper">
-          <p>등록된 서비스가 없습니다</p>
-        </div>
-        <div v-else class="services-grid">
-          <div v-for="service in services" 
-               :key="service.serviceId" 
-               class="service-card"
-               @click="viewServiceDetail(service.serviceId)">
-            <div class="service-header">
-              <div class="petsitter-info">
-                <img :src="service.petSitter.profileImageUrl || require('@/assets/default-profile.png')" 
-                     :alt="service.petSitter.name">
-                <span>{{ service.petSitter.name }}</span>
-              </div>
-              <div class="service-price">
-                {{ formatPrice(service.hourlyPrice) }}원/시간
-              </div>
-            </div>
-            <div class="service-content">
-              <div class="service-types">
-                <span v-for="type in service.serviceTypes" 
-                      :key="type" 
-                      class="tag">{{ getServiceTypeLabel(type) }}</span>
-              </div>
-              <div class="service-period">
-                {{ formatDate(service.availableStartDate) }} ~ 
-                {{ formatDate(service.availableEndDate) }}
-              </div>
-            </div>
-          </div>
-        </div>
+      <div v-if="loading" class="loading-wrapper">
+        <div class="loading-spinner"></div>
+        <p>서비스 정보를 불러오는 중...</p>
       </div>
 
-      <!-- 캘린더 뷰 -->
-      <div v-else class="calendar-view">
-        <div class="calendar-header">
-          <button @click="previousMonth">&lt;</button>
-          <h3>{{ currentYear }}년 {{ currentMonth }}월</h3>
-          <button @click="nextMonth">&gt;</button>
-        </div>
-        <div class="calendar-grid">
-          <div class="calendar-days">
-            <div v-for="day in ['일', '월', '화', '수', '목', '금', '토']" 
-                 :key="day" class="day-header">{{ day }}</div>
+      <div v-else-if="services.length === 0" class="empty-wrapper">
+        <p>해당 월에 등록된 서비스가 없습니다</p>
+      </div>
+
+      <div v-else class="services-grid">
+        <div v-for="service in services" 
+             :key="service.serviceId" 
+             class="service-card"
+             @click="viewServiceDetail(service.serviceId)">
+          <div class="service-header">
+            <div class="petsitter-info">
+              <div class="profile-image">
+                <img :src="service.petSitter.profileImageUrl || defaultProfileImage" 
+                     :alt="service.petSitter.name"
+                     @error="handleImageError">
+              </div>
+              <div class="petsitter-details">
+                <h3>{{ service.petSitter.name }}</h3>
+                <p>{{ service.petSitter.introduce || '소개글이 없습니다' }}</p>
+              </div>
+            </div>
+            <div class="price">{{ formatPrice(service.hourlyPrice) }}원/시간</div>
           </div>
-          <div class="calendar-dates">
-            <div v-for="date in calendarDates" 
-                 :key="date.fullDate" 
-                 :class="['date-cell', { 
-                   'other-month': !date.isCurrentMonth,
-                   'has-services': date.services.length > 0
-                 }]">
-              <div class="date-number">{{ date.day }}</div>
-              <div v-if="date.services.length > 0" class="service-dots">
-                <span v-for="service in date.services.slice(0, 3)" 
-                      :key="service.serviceId" 
-                      class="service-dot"></span>
+
+          <div class="service-content">
+            <div class="service-types">
+              <span v-for="type in service.serviceTypes" 
+                    :key="type" 
+                    class="tag">{{ type }}</span>
+            </div>
+            <div class="service-sizes">
+              <span v-for="size in service.availableSizes" 
+                    :key="size" 
+                    class="tag size">{{ size }}</span>
+            </div>
+            <div class="service-period">
+              {{ formatDate(service.availableStartDate) }} ~ 
+              {{ formatDate(service.availableEndDate) }}
+            </div>
+            <div class="available-times">
+              <p>예약 가능 시간</p>
+              <div class="time-slots">
+                <span v-for="time in service.availableTimes.slice(0, 3)" 
+                      :key="time.timeSlotId"
+                      class="time-slot">
+                  {{ formatTime(time.startTime) }}-{{ formatTime(time.endTime) }}
+                </span>
+                <span v-if="service.availableTimes.length > 3" 
+                      class="more-times">
+                  외 {{ service.availableTimes.length - 3 }}개
+                </span>
               </div>
             </div>
           </div>
@@ -120,15 +120,18 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { petsitterApi } from '@/api/petsitter';
+import { useToast } from 'vue-toastification';
 import defaultProfileImage from '@/assets/default-profile.png';
 
 export default {
   setup() {
     const router = useRouter();
-    const loading = ref(true);
+    const toast = useToast();
+    const loading = ref(false);
     const petsitters = ref([]);
     const services = ref([]);
-    const viewMode = ref('list');
+    const currentYear = ref(new Date().getFullYear());
+    const currentMonth = ref(new Date().getMonth() + 1);
     
     // 펫시터 목록 조회
     const fetchPetsitters = async () => {
@@ -153,16 +156,78 @@ export default {
       router.push(`/petsitter/${petSitterId}`);
     };
 
+    const fetchServices = async () => {
+      loading.value = true;
+      try {
+        const response = await petsitterApi.getMonthlyServices(
+          currentYear.value,
+          currentMonth.value
+        );
+        if (response.data.status === 'success') {
+          services.value = response.data.data.services;
+        }
+      } catch (error) {
+        if (error.response?.data?.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error('서비스 목록을 불러오는데 실패했습니다.');
+        }
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const changeMonth = (delta) => {
+      let newMonth = currentMonth.value + delta;
+      let newYear = currentYear.value;
+
+      if (newMonth > 12) {
+        newMonth = 1;
+        newYear++;
+      } else if (newMonth < 1) {
+        newMonth = 12;
+        newYear--;
+      }
+
+      currentMonth.value = newMonth;
+      currentYear.value = newYear;
+      fetchServices();
+    };
+
+    const formatPrice = (price) => {
+      return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
+
+    const formatDate = (dateStr) => {
+      const date = new Date(dateStr);
+      return `${date.getMonth() + 1}/${date.getDate()}`;
+    };
+
+    const formatTime = (timeStr) => {
+      return timeStr.substring(0, 5);
+    };
+
+    const handleImageError = (e) => {
+      e.target.src = defaultProfileImage;
+    };
+
     onMounted(() => {
       console.log('컴포넌트 마운트됨');
       fetchPetsitters();
+      fetchServices();
     });
 
     return {
       loading,
       petsitters,
       services,
-      viewMode,
+      currentYear,
+      currentMonth,
+      changeMonth,
+      formatPrice,
+      formatDate,
+      formatTime,
+      handleImageError,
       defaultProfileImage,
       goToDetail
     };
@@ -290,6 +355,7 @@ export default {
 /* 서비스 섹션 스타일 */
 .services-section {
   margin-top: 40px;
+  padding: 0 20px;
 }
 
 .services-header {
@@ -367,5 +433,152 @@ export default {
   border: none;
   font-size: 20px;
   cursor: pointer;
+}
+
+.month-selector {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.month-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.month-button:hover {
+  background-color: #f5f5f5;
+}
+
+.current-month {
+  font-size: 18px;
+  font-weight: 500;
+  min-width: 120px;
+  text-align: center;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.service-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+}
+
+.service-header {
+  margin-bottom: 15px;
+}
+
+.petsitter-info {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.profile-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.petsitter-details h3 {
+  margin: 0;
+  font-size: 1.1em;
+}
+
+.petsitter-details p {
+  margin: 5px 0 0;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.price {
+  font-size: 1.2em;
+  font-weight: 500;
+  color: #2196F3;
+  margin-top: 10px;
+}
+
+.service-period {
+  margin: 10px 0;
+  color: #666;
+}
+
+.available-times {
+  margin-top: 15px;
+}
+
+.available-times p {
+  margin: 0 0 5px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.time-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.time-slot {
+  background: #e3f2fd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.more-times {
+  color: #666;
+  font-size: 12px;
+}
+
+.loading-wrapper, .empty-wrapper {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.loading-spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

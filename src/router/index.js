@@ -13,6 +13,9 @@ import PetsitterRegister from '@/views/PetsitterRegister.vue';
 import PetsitterDetail from '@/views/PetsitterDetail.vue';
 import { useAuthStore } from '@/stores/auth';
 import Admin from '@/views/Admin.vue';
+import PetDetail from '@/views/PetDetail.vue';
+import ServiceManagement from '@/views/ServiceManagement.vue';
+import ServiceRegister from '@/views/ServiceRegister.vue';
 
 const routes = [
   {
@@ -53,6 +56,24 @@ const routes = [
       requiresAuth: true,
       requiresAdmin: true  // 관리자 권한 필요
     }
+  },
+  {
+    path: '/pet/:id',
+    name: 'PetDetail',
+    component: PetDetail,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/petsitter/:id/services/manage',
+    name: 'ServiceManagement',
+    component: ServiceManagement,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/service/register',
+    name: 'ServiceRegister',
+    component: ServiceRegister,
+    meta: { requiresAuth: true }
   }
 ];
 

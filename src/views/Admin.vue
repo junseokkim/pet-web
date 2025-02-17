@@ -99,6 +99,15 @@
       @close="closeGroupModal"
       @submit="handleGroupSubmit"
     />
+
+    <!-- 코드 상세 모달 -->
+    <CodeDetailModal 
+      v-if="showDetailModal && selectedGroup"
+      :detailData="editingDetail"
+      :codeGroupId="selectedGroup.codeGroupId"
+      @close="closeDetailModal"
+      @submit="handleDetailSubmit"
+    />
   </div>
 </template>
 
@@ -339,10 +348,12 @@ import { ref, onMounted } from 'vue';
 import { adminApi } from '@/api/admin';
 import { useToast } from "vue-toastification";
 import CodeGroupModal from '@/components/modals/CodeGroupModal.vue';
+import CodeDetailModal from '@/components/modals/CodeDetailModal.vue';
 
 export default {
   components: {
-    CodeGroupModal
+    CodeGroupModal,
+    CodeDetailModal
   },
 
   setup() {
@@ -352,6 +363,8 @@ export default {
     const selectedGroup = ref(null);
     const showGroupModal = ref(false);
     const editingGroup = ref(null);
+    const showDetailModal = ref(false);
+    const editingDetail = ref(null);
 
     const loadCodeGroups = async () => {
       try {
@@ -455,8 +468,89 @@ export default {
       }
     };
 
-    onMounted(() => {
-      loadCodeGroups();
+    const openNewDetailModal = () => {
+      if (!selectedGroup.value) {
+        toast.error('코드 그룹을 선택해주세요.');
+        return;
+      }
+      editingDetail.value = null;
+      showDetailModal.value = true;
+    };
+
+    const closeDetailModal = () => {
+      showDetailModal.value = false;
+      editingDetail.value = null;
+    };
+
+    const handleDetailSubmit = async (formData) => {
+      if (formData instanceof Event) return;
+      
+      try {
+        let response;
+        if (editingDetail.value) {
+          // 수정 시에는 codeGroupId를 제외한 데이터만 전송
+          const updateData = {
+            codeDetailId: formData.codeDetailId,
+            codeDetailName: formData.codeDetailName,
+            codeDetailValue: formData.codeDetailValue,
+            sortOrder: formData.sortOrder
+          };
+          response = await adminApi.updateCodeDetail(updateData);
+        } else {
+          // 생성 시에는 모든 데이터 포함
+          response = await adminApi.createCodeDetail(formData);
+        }
+        
+        if (response.data.status === 'success') {
+          toast.success(editingDetail.value ? '코드 상세가 수정되었습니다.' : '코드 상세가 추가되었습니다.');
+          await loadCodeDetails(selectedGroup.value.codeGroupId);
+          closeDetailModal();
+        }
+      } catch (error) {
+        if (error.message) {
+          toast.error(error.message);
+        } else {
+          toast.error('코드 상세 저장에 실패했습니다.');
+        }
+      }
+    };
+
+    const editDetail = (detail) => {
+      editingDetail.value = detail;
+      showDetailModal.value = true;
+    };
+
+    const deleteDetail = async (detailId) => {
+      if (!confirm('정말 이 코드 상세를 삭제하시겠습니까?')) {
+        return;
+      }
+
+      try {
+        const response = await adminApi.deleteCodeDetail(detailId);
+        if (response.data.status === 'success') {
+          toast.success('코드 상세가 삭제되었습니다.');
+          await loadCodeDetails(selectedGroup.value.codeGroupId);
+        }
+      } catch (error) {
+        if (error.message) {
+          toast.error(error.message);
+        } else {
+          toast.error('코드 상세 삭제에 실패했습니다.');
+        }
+      }
+    };
+
+    onMounted(async () => {
+      try {
+        await loadCodeGroups();
+        // 코드 그룹이 있다면 첫 번째 그룹 선택
+        if (codeGroups.value && codeGroups.value.length > 0) {
+          selectGroup(codeGroups.value[0]);
+        }
+      } catch (error) {
+        console.error('초기 데이터 로드 실패:', error);
+        toast.error('데이터 로드에 실패했습니다.');
+      }
     });
 
     return {
@@ -465,12 +559,19 @@ export default {
       selectedGroup,
       showGroupModal,
       editingGroup,
+      showDetailModal,
+      editingDetail,
       selectGroup,
       openNewGroupModal,
+      openNewDetailModal,
       editGroup,
       closeGroupModal,
+      closeDetailModal,
       handleGroupSubmit,
-      deleteGroup
+      handleDetailSubmit,
+      deleteGroup,
+      editDetail,
+      deleteDetail
     };
   }
 };
