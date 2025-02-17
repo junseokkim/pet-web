@@ -21,14 +21,25 @@ export const adminApi = {
     }
   },
 
-  updateCodeGroup: async (codeGroupId, codeGroupData) => {
-    const response = await authInstance.patch(`/code-group/${codeGroupId}`, codeGroupData);
-    return response;
+  updateCodeGroup: async (originalGroupId, codeGroupData) => {
+    try {
+      const response = await authInstance.patch('/code-group', codeGroupData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  deleteCodeGroup: async (codeGroupId) => {
-    const response = await authInstance.delete(`/code-group/${codeGroupId}`);
-    return response;
+  deleteCodeGroup: async (groupId) => {
+    try {
+      const response = await authInstance.delete(`/code-group/${groupId}`);
+      return response;
+    } catch (error) {
+      if (error.response?.status === 400 || error.response?.status === 404) {
+        throw error; // 비즈니스 로직 에러는 그대로 전달
+      }
+      throw new Error('코드 그룹 삭제에 실패했습니다.');
+    }
   },
 
   // 코드 상세 관련 API

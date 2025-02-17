@@ -398,36 +398,32 @@ export default {
     };
 
     const handleGroupSubmit = async (formData) => {
-      // 데이터 유효성 검사 (불필요한 토스트 제거)
       if (!formData || typeof formData === 'object' && !formData.codeGroupName) {
-        return;  // 토스트 제거하고 그냥 리턴만
+        return;
       }
 
       try {
-        console.log('전송할 폼 데이터:', formData);
         let response;
-        
         if (editingGroup.value) {
-          response = await adminApi.updateCodeGroup(
-            editingGroup.value.codeGroupId, 
-            formData
-          );
+          const updateData = {
+            codeGroupId: editingGroup.value.codeGroupId,
+            codeGroupName: formData.codeGroupName,
+            codeGroupDescription: formData.codeGroupDescription
+          };
+          response = await adminApi.updateCodeGroup(editingGroup.value.codeGroupId, updateData);
         } else {
           response = await adminApi.createCodeGroup(formData);
         }
         
-        // 성공 응답인 경우에만 처리
         if (response.data.status === 'success') {
           toast.success(editingGroup.value ? '코드 그룹이 수정되었습니다.' : '코드 그룹이 추가되었습니다.');
           await loadCodeGroups();
           closeGroupModal();
-        } else if (response.data.status === 'error') {
-          toast.error(response.data.message);
         }
       } catch (error) {
-        console.error('코드 그룹 저장 에러:', error);
-        if (error.response?.data?.status === 'error') {
-          toast.error(error.response.data.message);
+        // 에러 객체에서 직접 message 추출
+        if (error.message) {
+          toast.error(error.message);
         } else {
           toast.error('코드 그룹 저장에 실패했습니다.');
         }
@@ -450,7 +446,18 @@ export default {
         }
       } catch (error) {
         console.error('코드 그룹 삭제 에러:', error);
-        toast.error(error.response?.data?.message || '코드 그룹 삭제에 실패했습니다.');
+        if (error.response?.data?.status === 'error') {
+          if (error.response.data.message === '코드 그룹에 속한 코드 상세가 존재합니다.') {
+            toast.error('코드 상세가 존재하는 그룹은 삭제할 수 없습니다.');
+          } else if (error.response.data.message === '해당 코드 그룹이 존재하지 않습니다.') {
+            toast.error('존재하지 않는 코드 그룹입니다.');
+            loadCodeGroups();
+          } else {
+            toast.error(error.response.data.message);
+          }
+        } else {
+          toast.error('코드 그룹 삭제에 실패했습니다.');
+        }
       }
     };
 

@@ -6,7 +6,7 @@
         <button class="close-button" @click="$emit('close')">&times;</button>
       </div>
       
-      <form @submit="handleSubmit" class="modal-form">
+      <form @submit.prevent="handleSubmit" class="modal-form">
         <div class="form-group">
           <label>그룹 ID</label>
           <input 
@@ -16,6 +16,7 @@
             pattern="^[A-Za-z0-9_]+$"
             required
           >
+          <small v-if="isEdit" class="help-text">코드 그룹 ID는 수정할 수 없습니다.</small>
         </div>
         
         <div class="form-group">
@@ -199,5 +200,11 @@ export default {
 
 .submit-button:hover {
   background-color: #45a049;
+}
+
+.help-text {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 4px;
 }
 </style> 
