@@ -42,11 +42,11 @@
         <h2 class="section-title">서비스</h2>
         <div class="month-selector">
           <button class="month-button" @click="changeMonth(-1)">
-            <i class="fas fa-chevron-left"></i>
+            &#10094;
           </button>
           <span class="current-month">{{ currentYear }}년 {{ currentMonth }}월</span>
           <button class="month-button" @click="changeMonth(1)">
-            <i class="fas fa-chevron-right"></i>
+            &#10095;
           </button>
         </div>
       </div>
@@ -442,8 +442,8 @@ export default {
 }
 
 .month-button {
-  background: none;
-  border: none;
+  background: #f5f5f5;  /* 배경색 추가 */
+  border: 1px solid #ddd;  /* 테두리 추가 */
   font-size: 18px;
   cursor: pointer;
   padding: 8px;
@@ -453,10 +453,13 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #333;  /* 화살표 색상 추가 */
+  transition: all 0.2s ease;  /* 부드러운 전환 효과 */
 }
 
 .month-button:hover {
-  background-color: #f5f5f5;
+  background-color: #e0e0e0;
+  border-color: #ccc;
 }
 
 .current-month {

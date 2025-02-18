@@ -20,9 +20,6 @@
           <p>{{ formatBirth(pet.birth) }}</p>
         </div>
       </div>
-      <button @click="$emit('add-pet')" class="add-button">
-        <i class="fas fa-plus"></i>
-      </button>
     </div>
   </div>
 </template>
@@ -132,7 +129,7 @@ export default {
   font-size: 0.9em;
   color: #666;
 }
-
+/* 
 .add-button {
   width: 100%;
   padding: 10px;
@@ -146,5 +143,5 @@ export default {
 
 .add-button:hover {
   background: #eee;
-}
+} */
 </style>

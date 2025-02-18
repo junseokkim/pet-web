@@ -37,7 +37,10 @@
       <div class="times-section">
         <h3>예약 가능 시간</h3>
         <div class="time-slots">
-          <div v-for="time in service.availableTimes" 
+          <div v-if="availableTimeSlots.length === 0" class="no-times-message">
+            예약 가능한 시간이 없습니다.
+          </div>
+          <div v-else v-for="time in service.availableTimes" 
                :key="time.timeSlotId" 
                class="time-slot"
                :class="{ 'booked': time.isBooked }">
@@ -56,7 +59,9 @@
       </button>
       <button v-else 
               @click="startBooking" 
-              class="book-button">
+              class="book-button"
+              :disabled="!hasAvailableTimeSlots"
+              :title="!hasAvailableTimeSlots ? '예약 가능한 시간이 없습니다' : ''">
         예약하기
       </button>
     </div>
@@ -64,7 +69,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { petsitterApi } from '@/api/petsitter';
@@ -139,6 +144,15 @@ export default {
       router.push(`/service/${route.params.id}/booking`);
     };
 
+    const availableTimeSlots = computed(() => {
+      if (!service.value?.availableTimes) return [];
+      return service.value.availableTimes.filter(time => !time.isBooked);
+    });
+
+    const hasAvailableTimeSlots = computed(() => {
+      return availableTimeSlots.value.length > 0;
+    });
+
     onMounted(() => {
       fetchServiceDetail();
     });
@@ -152,7 +166,9 @@ export default {
       formatDate,
       formatTime,
       handleDelete,
-      startBooking
+      startBooking,
+      availableTimeSlots,
+      hasAvailableTimeSlots
     };
   }
 };
@@ -270,5 +286,19 @@ export default {
 .delete-button:hover {
   background: #ff4444;
   color: white;
+}
+
+.book-button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.no-times-message {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  background: #f5f5f5;
+  border-radius: 4px;
 }
 </style> 

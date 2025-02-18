@@ -22,7 +22,7 @@
     <PetsitterProfile :profile="petsitter" @add-petsitter="addPetsitter" />
 
     <h3 class="section-title">내 펫 프로필</h3>
-    <PetProfile :pets="pets" @add-pet="addPet" />
+    <PetProfile :pets="pets" :showAddButton="false" />
   </div>
 </template>
 
@@ -151,10 +151,6 @@ export default {
       fetchPets();
     });
 
-    const addPet = () => {
-      router.push('/pet/register');
-    };
-
     const addPetsitter = () => {
       router.push('/petsitter/register');
     };
@@ -169,7 +165,6 @@ export default {
       profile,
       pets, 
       petsitter, 
-      addPet,
       addPetsitter,
       handleLogout,
       router
